@@ -11,6 +11,14 @@ Many thanks to doppelganger (doppelheathen@gmail.com), who wrote the original co
 
 *looks and plays just like the original*
 
+ROM analysis skills and emulator tools
+--------------------------------------
+
+Optional agent workflows are available for independently producing readable,
+commented assembly and for investigating gameplay through a local FCEUX MCP
+server. See [ROM analysis tools](docs/rom-analysis-tools.md) for setup, supported
+systems, and validation. These tools do not change the C++ port's build.
+
 Building
 --------
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Emulator Use"
+  short_description: "Play and inspect local ROMs through emulator tools"
+  default_prompt: "Use $emulator-use to play my local ROM and investigate its behavior with replayable experiments."

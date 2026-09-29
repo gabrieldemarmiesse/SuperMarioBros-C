@@ -1,0 +1,4 @@
+interface:
+  display_name: "ROM to Assembly"
+  short_description: "Reconstruct documented assembly directly from ROMs"
+  default_prompt: "Use $rom-to-assembly to reconstruct organized, commented assembly from my ROM without using existing game disassemblies."
