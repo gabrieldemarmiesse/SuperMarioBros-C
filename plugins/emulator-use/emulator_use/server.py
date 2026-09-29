@@ -82,6 +82,17 @@ def get_status(session_id: str) -> dict:
 
 
 @mcp.tool()
+def set_speed(session_id: str, mode: str = 'normal') -> dict:
+    """Set normal or unthrottled playback without advancing or unpausing.
+
+    Unthrottled runs as fast as the backend allows while rendering every frame.
+    Frame limits, movie inputs, screenshots and write watches retain their normal
+    semantics. Speed is session-level and persists across checkpoint restores.
+    """
+    return get_session(session_id).set_speed(mode)
+
+
+@mcp.tool()
 def step(session_id: str, frames: int, buttons: list[str] | None = None) -> dict:
     """Advance exactly 1-600 frames with controller-1 buttons; release and pause afterward.
 

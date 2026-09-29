@@ -27,6 +27,7 @@ Codex thread is needed after installation. See the repository's
 | --- | --- |
 | `start_session` | Open a copied ROM with isolated emulator config/saves |
 | `load_movie` | Load a matching power-on text FM2 path for native read-only replay |
+| `set_speed` | Select normal or unthrottled pacing while retaining every rendered frame |
 | `get_status` | Read paused state, logical frame, and CPU registers |
 | `step` | Run 1-600 frames with explicit buttons, release, and pause |
 | `screenshot` | Return a 256x240 PNG image and save it as an artifact |

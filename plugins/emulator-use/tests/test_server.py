@@ -19,7 +19,7 @@ def test_stdio_discovery_and_unknown_session():
                 await client.initialize()
                 result = await client.list_tools()
                 assert {tool.name for tool in result.tools} == {
-                    'start_session', 'load_movie', 'get_status', 'step', 'screenshot', 'read_ram',
+                    'start_session', 'load_movie', 'get_status', 'set_speed', 'step', 'screenshot', 'read_ram',
                     'save_checkpoint', 'load_checkpoint', 'watch_writes', 'close_session',
                 }
                 error = await client.call_tool('get_status', {'session_id': 'missing'})

@@ -15,7 +15,7 @@ async def main():
         async with ClientSession(read,write) as client:
             await client.initialize()
             listed=await client.list_tools()
-            assert len(listed.tools)==10
+            assert len(listed.tools)==11
             print('MCP tools:',', '.join(t.name for t in listed.tools),flush=True)
             async def call(name,args):
                 result=await client.call_tool(name,args)
@@ -58,13 +58,15 @@ async def main():
                     make_movie(movie,opened['initial_status']['rom_md5'])
                     loaded = await call('load_movie',args|{'movie_path':str(movie)})
                     assert loaded['movie']['length']==421
+                    speed = await call('set_speed',args|{'mode':'unthrottled'})
+                    assert speed['frame']==0 and speed['paused'] and speed['speed']=='unthrottled'
                     assert (await call('step',args|{'frames':331}))['frame']==331
                     await call('screenshot',args)
                     assert (await call('step',args|{'frames':600}))['frames_advanced']==90
                     assert (await call('step',args|{'frames':1}))['frames_advanced']==0
                 finally:
                     await call('close_session',args)
-            print('PASS: real MCP stdio, ten tools, image response, native FM2 replay, checksum rejection, EOF clipping',flush=True)
+            print('PASS: real MCP stdio, eleven tools, image response, unthrottled FM2 replay, checksum rejection, EOF clipping',flush=True)
 
 
 asyncio.run(main())

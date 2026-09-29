@@ -9,7 +9,7 @@ These optional tools support two related workflows:
   optional. Separate NES, Game Boy/Color, and GBA profiles describe analysis;
   those profiles do not imply executable emulator support for every system.
 - [emulator-use](../plugins/emulator-use/skills/emulator-use/SKILL.md) controls a
-  local FCEUX process through ten MCP tools. It supports NES cartridges only,
+  local FCEUX process through eleven MCP tools. It supports NES cartridges only,
   with bounded input, PNG screenshots, checkpoints, internal RAM reads, CPU
   registers, and bounded write-watch events.
 
@@ -80,6 +80,12 @@ to inspect the path. FCEUX owns playback timing and controller/reset events.
 The movie is read-only and copied into the isolated session. Its ROM checksum
 must match the cartridge. Requests stop at the movie end rather than silently
 continuing gameplay.
+
+For faster playback, call `set_speed(session_id, "unthrottled")`. FCEUX renders
+every frame while running as fast as the host/backend allows. Frame bounds and
+movie inputs are unchanged; screenshots still show the requested stopping frame.
+Use `"normal"` to restore real-time pacing. Changing speed advances no frames,
+and the selected mode persists across checkpoint restores.
 
 Supported movies are power-on text FM2 version 3 with standard gamepad/empty
 ports. Binary recordings, embedded savestate starts, Four Score, FDS, and special

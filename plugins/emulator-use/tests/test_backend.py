@@ -25,6 +25,15 @@ def test_frame_limits_reject_bool_fraction_and_overflow():
             integer(value, 1, 600, 'frames')
 
 
+def test_invalid_speed_never_reaches_bridge(tmp_path):
+    s = bare_session(tmp_path)
+    s.command = Mock()
+    for mode in ['turbo', 'maximum', 'normal\nstep', '', 2, None]:
+        with pytest.raises(ValueError):
+            s.set_speed(mode)
+    s.command.assert_not_called()
+
+
 def test_screenshot_channel_order_and_shape():
     raw=b'\xff\xfe'+struct.pack('>HH',256,240)+b'\x01\xff\xff\xff\xff'+bytes([0,12,34,56])*(256*240)
     image=Image.open(io.BytesIO(gd_to_png(raw)))

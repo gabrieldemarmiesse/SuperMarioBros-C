@@ -44,6 +44,9 @@ def main():
             print('REPLAY_IMAGE',expected_image['file'],flush=True)
             s.checkpoint('game',load=True)
             assert s.ram(0,2048)['sha256'] == start
+            speed = s.set_speed('unthrottled')
+            assert speed['frame'] == 331 and speed['paused']
+            assert speed['speed'] == 'unthrottled'
             s.step(30,[])
             assert s.ram(0,2048)['sha256'] == expected_ram
             assert s.screenshot()['png'] == expected_image['png']
@@ -55,6 +58,10 @@ def main():
                 except ValueError: pass
                 else: raise AssertionError('Manual input overrode movie playback')
             s.checkpoint('title',load=True)
+            assert s.status()['speed'] == 'unthrottled'
+            speed = s.set_speed('normal')
+            assert speed['frame'] == 120 and speed['paused']
+            assert speed['speed'] == 'normal'
             assert s.step(211,[])['frame'] == 331
             assert s.ram(0,2048)['sha256'] == start
             assert hashlib.sha256(movie.read_bytes()).hexdigest() == original
@@ -65,10 +72,10 @@ def main():
         # A separate process must reproduce the same scene without its old checkpoints.
         replay = Session(sys.argv[1])
         try:
-            replay.load_movie(str(movie)); replay.step(361,[])
+            replay.load_movie(str(movie)); replay.set_speed('unthrottled'); replay.step(361,[])
             assert replay.ram(0,2048)['sha256'] == expected_ram
             assert replay.screenshot()['png'] == expected_image['png']
-            print('PASS: FM2 replay reproduces RAM and framebuffer in a fresh emulator session',flush=True)
+            print('PASS: unthrottled FM2 replay matches normal-speed RAM and framebuffer in a fresh session',flush=True)
         finally: replay.close()
 
 

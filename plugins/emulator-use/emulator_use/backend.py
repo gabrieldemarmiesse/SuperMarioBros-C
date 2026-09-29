@@ -85,7 +85,7 @@ class Session:
                          'rom_sha256': hashlib.sha256(raw).hexdigest(),
                          'system': 'nes', 'backend': 'fceux', 'session_dir': str(self.root),
                          'frame_convention': 'completed frames since bridge ready; restored with checkpoints',
-                         'capabilities': ['step', 'screenshot', 'checkpoint', 'read_internal_ram', 'registers', 'watch_writes', 'fm2_replay'],
+                         'capabilities': ['step', 'screenshot', 'checkpoint', 'read_internal_ram', 'registers', 'watch_writes', 'fm2_replay', 'speed_control'],
                          'limitations': ['GUI display required', 'CPU-only watch PC; physical mapper bank unresolved',
                                          'checkpoints load only within their originating session',
                                          'no arbitrary Lua, ROM writes, or MMIO reads']}
@@ -161,6 +161,11 @@ class Session:
 
     def status(self):
         return self.command('status')
+
+    def set_speed(self, mode: str):
+        if mode not in ('normal', 'unthrottled'):
+            raise ValueError('Speed must be normal or unthrottled')
+        return self.command('speed', mode)
 
     def load_movie(self, movie_path: str):
         raw, metadata = inspect_movie(movie_path)

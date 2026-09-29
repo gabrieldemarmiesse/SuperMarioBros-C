@@ -5,6 +5,7 @@ local checkpoints = {}
 local logical_frame = 0
 local replay = false
 local replay_length = 0
+local speed = 'normal'
 local buttons = {'A','B','select','start','up','down','left','right'}
 local function input(names)
   if replay then return end -- Native FCEUX movie playback owns both ports.
@@ -44,7 +45,7 @@ local function regs()
 end
 local function status()
   return {frame=logical_frame, emulator_frame=emu.framecount(), paused=emu.paused(),
-    registers=regs(), rom=rom.getfilename(), rom_md5=rom.gethash('md5'), protocol=1,
+    registers=regs(), rom=rom.getfilename(), rom_md5=rom.gethash('md5'), protocol=1, speed=speed,
     movie={enabled=replay, frame=logical_frame, length=replay_length,
       remaining=math.max(0,replay_length-logical_frame),
       mode=replay and (logical_frame>=replay_length and 'finished' or 'playback') or 'none'}}
@@ -84,6 +85,12 @@ end)
 local function handle(lines)
   local id,op=assert(lines[1]),assert(lines[2])
   if op=='status' then respond(id,status())
+  elseif op=='speed' then
+    local mode=lines[3]
+    assert(mode=='normal' or mode=='unthrottled','Invalid speed mode')
+    emu.speedmode(mode=='unthrottled' and 'nothrottle' or 'normal')
+    speed=mode
+    respond(id,status())
   elseif op=='movie' then
     assert(not replay and logical_frame==0 and next(checkpoints)==nil,'Fresh session required')
     assert(movie.play(root .. '/replay.fm2',true),'Could not load FM2 movie')

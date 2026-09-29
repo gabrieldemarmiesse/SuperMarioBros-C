@@ -29,6 +29,12 @@ call releases buttons and pauses afterward; pressing a button in one call does
 not hold it through the next. Opposite directions are rejected. Discover actions
 from visible responses; do not assume a title's controls or scripted menu timing.
 
+For long runs, call `set_speed(session_id, "unthrottled")` to advance faster while
+rendering every frame. Actual speed depends on the host; this is not a fixed
+multiplier. Frame bounds, input timing, and pausing still apply. Use `"normal"`
+to return to real-time pacing. Speed changes advance no frames and persist across
+checkpoint restores; `get_status` includes the selected speed.
+
 ## Replay an FM2 movie
 
 For a recorded path through the game, start a fresh session and call `load_movie`
