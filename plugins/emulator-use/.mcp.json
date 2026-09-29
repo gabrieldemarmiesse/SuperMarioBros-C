@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "emulator": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "${PLUGIN_ROOT}",
+        "--locked",
+        "--no-dev",
+        "python",
+        "-m",
+        "emulator_use.server"
+      ],
+      "env": {
+        "UV_PROJECT_ENVIRONMENT": "${PLUGIN_DATA}/venv"
+      },
+      "env_vars": [
+        "FCEUX_PATH"
+      ]
+    }
+  }
+}

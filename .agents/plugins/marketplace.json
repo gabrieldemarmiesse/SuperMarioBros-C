@@ -1,0 +1,20 @@
+{
+  "name": "smb-rom-tools",
+  "interface": {
+    "displayName": "Smb Rom Tools"
+  },
+  "plugins": [
+    {
+      "name": "emulator-use",
+      "source": {
+        "source": "local",
+        "path": "./plugins/emulator-use"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

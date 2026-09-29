@@ -1,0 +1,25 @@
+{
+  "name": "emulator-use",
+  "version": "0.1.0",
+  "description": "Play and inspect local NES ROMs with FCEUX MCP tools and replayable experiments.",
+  "author": {
+    "name": "Local developer"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Emulator Use",
+    "shortDescription": "Play, observe, and debug local NES ROMs.",
+    "longDescription": "Bounded emulator input, PNG screenshots, checkpoints, RAM inspection, and write-watch experiments through a local MCP server.",
+    "developerName": "Local developer",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Play my NES ROM and investigate its behavior."
+    ]
+  },
+  "mcpServers": "./.mcp.json"
+}
