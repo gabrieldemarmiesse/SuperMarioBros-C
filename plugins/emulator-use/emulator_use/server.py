@@ -61,6 +61,21 @@ def start_session(rom_path: str, output_dir: str | None = None) -> dict:
 
 
 @mcp.tool()
+def load_movie(session_id: str, movie_path: str) -> dict:
+    """Load a local power-on text FM2 movie into a fresh session for native read-only replay.
+
+    Must be called before stepping or creating checkpoints. Checks the FM2 ROM
+    checksum against FCEUX's loaded cartridge identity; copies the movie into the
+    session directory. Then use step without buttons to replay bounded segments,
+    screenshot/read_ram/watch_writes to inspect them, and checkpoints to revisit.
+    At the movie end step advances zero frames; manual input is rejected.
+    Supports NES standard gamepad ports and reset/power commands. Other FM2 forms
+    (binary, Four Score, FDS, embedded save states) are explicitly rejected.
+    """
+    return get_session(session_id).load_movie(movie_path)
+
+
+@mcp.tool()
 def get_status(session_id: str) -> dict:
     """Get frame number, paused status and CPU registers without advancing the game."""
     return get_session(session_id).status()
@@ -72,6 +87,7 @@ def step(session_id: str, frames: int, buttons: list[str] | None = None) -> dict
 
     Buttons: A, B, start, select, up, down, left, right. Empty means neutral input.
     Use short intervals near events and call screenshot to inspect the result.
+    During movie replay omit buttons; advancement stops at the movie end.
     """
     return get_session(session_id).step(frames, buttons or [])
 

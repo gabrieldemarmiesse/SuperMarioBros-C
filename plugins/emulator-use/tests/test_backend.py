@@ -41,6 +41,7 @@ def bare_session(tmp_path):
     s.seq=0
     s.closed=False
     s.checkpoints=set()
+    s.movie=None
     s.close=Mock()
     return s
 

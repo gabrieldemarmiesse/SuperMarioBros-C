@@ -3,8 +3,11 @@ local root = assert(os.getenv('EMULATOR_USE_SESSION'))
 local active, pending = nil, nil
 local checkpoints = {}
 local logical_frame = 0
+local replay = false
+local replay_length = 0
 local buttons = {'A','B','select','start','up','down','left','right'}
 local function input(names)
+  if replay then return end -- Native FCEUX movie playback owns both ports.
   local state = {}
   for _, key in ipairs(buttons) do state[key] = false end
   for key in (names or ''):gmatch('[^,]+') do state[key] = true end
@@ -41,7 +44,10 @@ local function regs()
 end
 local function status()
   return {frame=logical_frame, emulator_frame=emu.framecount(), paused=emu.paused(),
-    registers=regs(), rom=rom.getfilename(), protocol=1}
+    registers=regs(), rom=rom.getfilename(), rom_md5=rom.gethash('md5'), protocol=1,
+    movie={enabled=replay, frame=logical_frame, length=replay_length,
+      remaining=math.max(0,replay_length-logical_frame),
+      mode=replay and (logical_frame>=replay_length and 'finished' or 'playback') or 'none'}}
 end
 local function unwatch()
   if active and active.watch then memory.registerwrite(active.watch, 1, nil) end
@@ -78,8 +84,25 @@ end)
 local function handle(lines)
   local id,op=assert(lines[1]),assert(lines[2])
   if op=='status' then respond(id,status())
+  elseif op=='movie' then
+    assert(not replay and logical_frame==0 and next(checkpoints)==nil,'Fresh session required')
+    assert(movie.play(root .. '/replay.fm2',true),'Could not load FM2 movie')
+    movie.setreadonly(true)
+    joypad.set(1,{}); joypad.set(2,{}) -- Relinquish any pending manual overrides.
+    replay=true; replay_length=movie.length(); logical_frame=0
+    emu.pause()
+    respond(id,status())
   elseif op=='step' or op=='watch' then
     local n=assert(tonumber(lines[3])); assert(n>=1 and n<=600)
+    if replay then
+      assert((lines[4] or '')=='','Movie replay owns controller inputs')
+      n=math.min(n,math.max(0,replay_length-logical_frame))
+      if n==0 then
+        local result=status(); result.frames_advanced=0
+        result.events={}; result.event_count=0; result.truncated=false
+        respond(id,result); return
+      end
+    end
     active={id=id,remaining=n,total=n,buttons=lines[4] or '',events={},count=0}
     if op=='watch' then
       active.watch=assert(tonumber(lines[5])); assert(active.watch>=0 and active.watch<2048)

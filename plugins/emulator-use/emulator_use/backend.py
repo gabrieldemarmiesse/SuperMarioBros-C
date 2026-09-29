@@ -16,6 +16,8 @@ import uuid
 
 from PIL import Image
 
+from .movie import inspect_movie
+
 BUTTONS = frozenset(('A', 'B', 'select', 'start', 'up', 'down', 'left', 'right'))
 BRIDGE = Path(__file__).parent / 'systems' / 'nes' / 'bridge.lua'
 
@@ -74,6 +76,7 @@ class Session:
         self.seq = 0
         self.checkpoints: set[str] = set()
         self.initial_ram_sha256 = None
+        self.movie = None
         target = self.root/'game.nes'
         target.write_bytes(raw)
         config = self.root/'fceux-config'
@@ -82,7 +85,7 @@ class Session:
                          'rom_sha256': hashlib.sha256(raw).hexdigest(),
                          'system': 'nes', 'backend': 'fceux', 'session_dir': str(self.root),
                          'frame_convention': 'completed frames since bridge ready; restored with checkpoints',
-                         'capabilities': ['step', 'screenshot', 'checkpoint', 'read_internal_ram', 'registers', 'watch_writes'],
+                         'capabilities': ['step', 'screenshot', 'checkpoint', 'read_internal_ram', 'registers', 'watch_writes', 'fm2_replay'],
                          'limitations': ['GUI display required', 'CPU-only watch PC; physical mapper bank unresolved',
                                          'checkpoints load only within their originating session',
                                          'no arbitrary Lua, ROM writes, or MMIO reads']}
@@ -159,8 +162,32 @@ class Session:
     def status(self):
         return self.command('status')
 
+    def load_movie(self, movie_path: str):
+        raw, metadata = inspect_movie(movie_path)
+        with self.lock:
+            current = self.status()
+            if self.movie is not None or self.checkpoints or current['frame'] != 0:
+                raise ValueError('Load a movie into a fresh session before stepping or saving checkpoints')
+            if metadata['rom_md5'] != current['rom_md5'].lower():
+                raise ValueError('FM2 ROM checksum does not match the loaded cartridge')
+            target = self.root / 'replay.fm2'
+            target.write_bytes(raw)
+            result = self.command('movie')
+            if result['movie']['length'] != metadata['frames']:
+                self.close()
+                raise RuntimeError('FCEUX movie length differs from inspected FM2 length')
+            self.movie = metadata
+            self.metadata['movie'] = metadata | {'copy': str(target), 'readonly': True}
+            self._write_metadata()
+            return result | {'movie_identity': self.metadata['movie']}
+
+    def _movie_buttons(self, buttons):
+        if self.movie is not None and buttons:
+            raise ValueError('Movie replay owns controller inputs; omit buttons')
+
     def step(self, frames: int, buttons: list[str]):
         integer(frames, 1, 600, 'frames')
+        self._movie_buttons(buttons)
         return self.command('step', frames, button_string(buttons))
 
     def ram(self, address: int, length: int):
@@ -196,6 +223,7 @@ class Session:
         integer(address, 0, 2047, 'address')
         integer(frames, 1, 120, 'frames')
         integer(max_events, 1, 512, 'max_events')
+        self._movie_buttons(buttons)
         return self.command('watch', frames, button_string(buttons), address, max_events)
 
     def close(self):

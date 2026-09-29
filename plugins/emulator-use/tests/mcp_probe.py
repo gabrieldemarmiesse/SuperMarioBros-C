@@ -3,6 +3,8 @@ import asyncio
 import json
 from pathlib import Path
 import sys
+import tempfile
+from tests.movie_probe import make_movie
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
@@ -13,7 +15,7 @@ async def main():
         async with ClientSession(read,write) as client:
             await client.initialize()
             listed=await client.list_tools()
-            assert len(listed.tools)==9
+            assert len(listed.tools)==10
             print('MCP tools:',', '.join(t.name for t in listed.tools),flush=True)
             async def call(name,args):
                 result=await client.call_tool(name,args)
@@ -44,7 +46,25 @@ async def main():
                 assert (await call('get_status',args))['frame']==120
             finally:
                 await call('close_session',args)
-            print('PASS: real MCP stdio, nine tools, image response, input, RAM, checkpoint, invalid request',flush=True)
+            with tempfile.TemporaryDirectory() as tmp:
+                opened = await call('start_session', {'rom_path':sys.argv[1]})
+                args = {'session_id':opened['session_id']}
+                try:
+                    movie = Path(tmp)/'replay.fm2'
+                    make_movie(movie,'00'*16)
+                    bad = await client.call_tool('load_movie',args|{'movie_path':str(movie)})
+                    assert bad.isError
+                    assert (await call('get_status',args))['frame']==0
+                    make_movie(movie,opened['initial_status']['rom_md5'])
+                    loaded = await call('load_movie',args|{'movie_path':str(movie)})
+                    assert loaded['movie']['length']==421
+                    assert (await call('step',args|{'frames':331}))['frame']==331
+                    await call('screenshot',args)
+                    assert (await call('step',args|{'frames':600}))['frames_advanced']==90
+                    assert (await call('step',args|{'frames':1}))['frames_advanced']==0
+                finally:
+                    await call('close_session',args)
+            print('PASS: real MCP stdio, ten tools, image response, native FM2 replay, checksum rejection, EOF clipping',flush=True)
 
 
 asyncio.run(main())

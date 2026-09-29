@@ -9,7 +9,7 @@ These optional tools support two related workflows:
   optional. Separate NES, Game Boy/Color, and GBA profiles describe analysis;
   those profiles do not imply executable emulator support for every system.
 - [emulator-use](../plugins/emulator-use/skills/emulator-use/SKILL.md) controls a
-  local FCEUX process through nine MCP tools. It supports NES cartridges only,
+  local FCEUX process through ten MCP tools. It supports NES cartridges only,
   with bounded input, PNG screenshots, checkpoints, internal RAM reads, CPU
   registers, and bounded write-watch events.
 
@@ -71,6 +71,22 @@ Use a separate local directory if overriding `output_dir`; do not commit session
 artifacts, ROMs, personal paths, or saves. The tools expose no arbitrary Lua,
 ROM/RAM patching, or side-effecting MMIO reads.
 
+## Replay a recorded path
+
+Open a fresh session, then pass the local FM2 filename to
+`load_movie(session_id, movie_path)`. Use `step` without buttons to replay bounded
+segments, and the usual screenshots, RAM reads, checkpoints, and write watches
+to inspect the path. FCEUX owns playback timing and controller/reset events.
+The movie is read-only and copied into the isolated session. Its ROM checksum
+must match the cartridge. Requests stop at the movie end rather than silently
+continuing gameplay.
+
+Supported movies are power-on text FM2 version 3 with standard gamepad/empty
+ports. Binary recordings, embedded savestate starts, Four Score, FDS, and special
+controllers are not implemented. A matching ROM still needs compatible emulator
+settings/version to stay synchronized. The C++ port's existing movie support can
+consume FM2 inputs too, but does not reproduce NES CPU startup or lag timing.
+
 ## Validate changes
 
 The ordinary tests need no FCEUX or game ROM:
@@ -86,6 +102,7 @@ with the title/start sequence in the tests. They are deliberately opt-in:
 ```sh
 uv run --locked python -m tests.live_probe /absolute/path/game.nes
 uv run --locked python -m tests.mcp_probe /absolute/path/game.nes
+uv run --locked python -m tests.movie_probe /absolute/path/game.nes
 ```
 
 The first probe exercises the bridge and deterministic replay. The second uses

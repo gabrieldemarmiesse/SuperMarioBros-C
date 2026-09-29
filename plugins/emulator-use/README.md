@@ -26,6 +26,7 @@ Codex thread is needed after installation. See the repository's
 | Tool | Behavior |
 | --- | --- |
 | `start_session` | Open a copied ROM with isolated emulator config/saves |
+| `load_movie` | Load a matching power-on text FM2 path for native read-only replay |
 | `get_status` | Read paused state, logical frame, and CPU registers |
 | `step` | Run 1-600 frames with explicit buttons, release, and pause |
 | `screenshot` | Return a 256x240 PNG image and save it as an artifact |
@@ -42,6 +43,14 @@ frame counter rewinds on load; request IDs remain monotonic. Use an identical
 neutral step after loading checkpoints when comparing rendered images because
 the framebuffer may be stale immediately after load.
 
+For movie replay, call `load_movie(session_id, movie_path)` immediately after
+opening a session, then `step` without buttons. The movie is copied locally and
+its cartridge checksum must match. Playback stops at EOF and can be revisited
+through checkpoints. Supports power-on text FM2 version 3 with standard gamepads;
+other FM2 variants are explicitly rejected. The movie probe checks identical
+RAM/framebuffer output across checkpoint rewinds and fresh emulator sessions.
+See the [FM2 specification](https://fceux.com/web/help/fm2.html) for the format.
+
 Only the NES backend is implemented. It does not resolve physical mapper banks,
 provide full instruction traces, or accept arbitrary Lua/ROM/RAM writes. A write
 hook's PC is CPU callback context and needs static validation. Readable assembly
@@ -53,6 +62,7 @@ and code explanations remain a separate analysis task.
 uv run --locked --group dev pytest -q
 uv run --locked python -m tests.live_probe /absolute/path/to/game.nes
 uv run --locked python -m tests.mcp_probe /absolute/path/to/game.nes
+uv run --locked python -m tests.movie_probe /absolute/path/to/game.nes
 ```
 
 The opt-in live probes currently use a Super Mario Bros. title/start sequence;

@@ -68,6 +68,20 @@ Correlation alone does not justify calling it velocity. A routine running every
 frame during a jump is not necessarily the jump routine. Link the event to the
 actual data flow and validate a contrasting case.
 
+## Recorded movie paths
+
+If an emulator backend offers native movie playback, prefer it for an existing
+recording rather than reimplementing its timing with button batches. For the
+`emulator-use` NES tools, start a fresh session, call `load_movie` with the FM2
+path, and advance through it with bounded `step` calls without manual buttons.
+The tool verifies the cartridge checksum and reports movie position/EOF. Use
+checkpoints, frames, and write watches to connect events on that path to code.
+
+Distinguish replay compatibility from file-format compatibility. A C++ port
+accepting FM2 input rows may omit emulator startup or lag frames. Do not trim
+inputs or change identity headers silently to claim a synchronized replay.
+Preserve the original movie and document any explicitly requested adaptation.
+
 ## Replay and instrumentation
 
 Record ROM hash, emulator version, region/hardware settings, start state or reset

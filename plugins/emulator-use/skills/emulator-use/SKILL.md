@@ -29,6 +29,29 @@ call releases buttons and pauses afterward; pressing a button in one call does
 not hold it through the next. Opposite directions are rejected. Discover actions
 from visible responses; do not assume a title's controls or scripted menu timing.
 
+## Replay an FM2 movie
+
+For a recorded path through the game, start a fresh session and call `load_movie`
+with the local `.fm2` path before stepping or creating checkpoints. The tool
+checks the movie's ROM checksum against FCEUX's cartridge identity and copies the
+file into the session. Do not silently bypass a checksum mismatch or rewrite the
+header to make an incompatible recording appear valid.
+
+FCEUX performs native, read-only playback. Use `step` without buttons to advance
+bounded segments; the movie supplies both controller ports and reset/power
+commands. Inspect screenshots, read RAM, and use `watch_writes` without buttons
+at interesting points. Save/load checkpoints to revisit the same movie segment.
+`get_status` reports movie position, length, and remaining frames. A step crossing
+the end is shortened; further steps advance zero frames. Manual input is rejected
+in replay sessions. Open another session for interactive play.
+
+This version accepts power-on text FM2 version 3 with standard gamepad/empty ports.
+Binary movies, embedded savestate starts, Four Score, FDS, and special controllers
+are rejected explicitly. Record the movie hash and emulator/version/settings with
+the experiment. A ROM checksum match alone does not guarantee synchronization
+across emulator versions. The C++ port's FM2 input support also omits NES CPU
+power-on/lag timing; replay there is not automatically frame-identical to FCEUX.
+
 ## Investigate a behavior
 
 Save a checkpoint before an event. Use unique checkpoint names: the tools do not
