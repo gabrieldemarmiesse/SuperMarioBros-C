@@ -46,6 +46,13 @@ public:
     Controller& getController2();
 
     /**
+     * Read a byte of RAM, which holds all of the game's state.
+     *
+     * @param address the RAM address (0x0000-0x07ff).
+     */
+    uint8_t readRAM(uint16_t address) const;
+
+    /**
      * Render the screen to a buffer.
      *
      * @param buffer a 256x240 32-bit color buffer for storing the rendering.
@@ -59,8 +66,11 @@ public:
 
     /**
      * Update the game engine by one frame.
+     *
+     * @param updateAudio whether to generate audio for the frame (if audio is enabled in the configuration).
+     * The generated audio must be consumed by audioCallback(). Audio does not affect the game's state.
      */
-    void update();
+    void update(bool updateAudio = true);
 
 private:
     // NES Emulation subsystems:

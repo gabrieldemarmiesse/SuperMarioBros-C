@@ -29,6 +29,10 @@ SMBEngine::SMBEngine(uint8_t* romImage) :
     chr = (romImage + 16 + (16384 * 2));
 
     returnIndexStackTop = 0;
+
+    // The game's boot code reads RAM before clearing it (and never clears parts of it),
+    // so start from a known state to make runs deterministic
+    memset(ram, 0, sizeof(ram));
 }
 
 SMBEngine::~SMBEngine()
@@ -54,6 +58,11 @@ Controller& SMBEngine::getController2()
     return *controller2;
 }
 
+uint8_t SMBEngine::readRAM(uint16_t address) const
+{
+    return ram[address & 0x7ff];
+}
+
 void SMBEngine::render(uint32_t* buffer)
 {
     ppu->render(buffer);
@@ -65,13 +74,13 @@ void SMBEngine::reset()
     code(0);
 }
 
-void SMBEngine::update()
+void SMBEngine::update(bool updateAudio)
 {
     // Run the decompiled code for the NMI handler
     code(1);
 
     // Update the APU
-    if (Configuration::getAudioEnabled())
+    if (updateAudio && Configuration::getAudioEnabled())
     {
         apu->stepFrame();
     }

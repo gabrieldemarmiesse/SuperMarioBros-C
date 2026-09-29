@@ -37,6 +37,50 @@ Running
 
 This requires an *unmodified* copy of the `Super Mario Bros. (JU) (PRG0) [!].nes` ROM to run. Without this, the game won't have any graphics, since the CHR data is used for rendering. By default, the program will look for this file in the current working directory, but this can also be configured in `smbc.conf`.
 
+Movie Playback
+--------------
+
+A movie file can be passed on the command line to provide the controller input for every frame (e.g. for tool-assisted speedruns):
+
+```
+./smbc movie.fm2
+```
+
+The format is the input log of FCEUX `.fm2` files. Every line starting with `|` is the input for one frame, starting with the very first frame the game runs:
+
+```
+|0|........|........||
+|0|....T...|||
+|0|R.....B.|||
+|0|R.....BA|||
+```
+
+- The first field is a number of commands; `1` (soft reset) or `2` (hard reset) resets the game before that frame runs.
+- The next two fields are the buttons held on controllers 1 and 2. Each is either empty (no buttons) or 8 characters in `RLDUTSBA` order (Right, Left, Down, Up, sTart, Select, B, A), where `.` or a space means released and any other character means pressed.
+- All other lines are ignored, so FCEUX header lines or your own notes can be kept in the file.
+
+Keyboard input is ignored while the movie plays, and control returns to the keyboard when it ends.
+
+To check a movie or search for inputs from a script, add `--headless`. This plays the movie as fast as possible without a window or audio, then prints the state of the game after the last frame:
+
+```
+$ ./smbc --headless movie.fm2
+Loaded movie "movie.fm2" with 832 frames.
+frames: 832
+elapsed_ms: 12
+mode: game
+world: 1-1
+player_x: 232
+player_y: 176
+player_x_speed: 40
+timer: 396
+lives: 2
+```
+
+`mode` is one of `title`, `game`, `victory` or `game over`, and `player_x` is the player's position from the start of the area, in pixels. Building with `cmake -DCMAKE_BUILD_TYPE=Release ..` makes headless mode about 1.6 times faster.
+
+Note that this port does not emulate the NES CPU's timing (power-on frames and lag frames), so movies recorded in an emulator may need their first frames trimmed and are not guaranteed to stay in sync.
+
 Configuration
 -------------
 
